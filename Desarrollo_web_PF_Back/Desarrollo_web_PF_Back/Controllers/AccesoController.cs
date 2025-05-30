@@ -69,7 +69,9 @@ namespace Desarrollo_web_PF_Back.Controllers
             {
                 isSuccess = true,
                 token = token,
-                rol = usuarioEncontrado.Rol?.RolNombre // Asegurarse de que Rol no sea null
+                rol = usuarioEncontrado.Rol?.RolNombre,
+                usuarioNombre=usuarioEncontrado.UsuNombre,
+                correo=usuarioEncontrado.UsuCorreo
             });
         }
 

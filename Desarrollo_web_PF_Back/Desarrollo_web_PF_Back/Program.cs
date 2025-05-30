@@ -16,7 +16,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("CadenaSQL")));
 
 
-
 // Agregar el servicio de Utilidades para encriptación y generación de tokens JWT
 builder.Services.AddSingleton<Utilidades>();
 
@@ -53,6 +52,16 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+
+// Configurar CORS para permitir solicitudes de cualquier origen
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("NewPolicy", app =>
+    {
+        app.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -61,6 +70,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Aplicar la política CORS
+app.UseCors("NewPolicy");
 
 app.UseAuthorization();
 
