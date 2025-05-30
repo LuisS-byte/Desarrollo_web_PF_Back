@@ -1,0 +1,6 @@
+@Desarrollo_web_PF_Back_HostAddress = http://localhost:5053
+
+GET {{Desarrollo_web_PF_Back_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,69 @@
+using Desarrollo_web_PF_Back.Custom;
+using Desarrollo_web_PF_Back.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+
+builder.Services.AddControllers();
+
+// Agregar servicios para conectar a la base de datos SQL Server
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("CadenaSQL")));
+
+
+
+// Agregar el servicio de Utilidades para encriptación y generación de tokens JWT
+builder.Services.AddSingleton<Utilidades>();
+
+// Configurar autenticación JWT
+builder.Services.AddAuthentication(config =>
+{
+    config.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    config.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true, // Validamos la firma
+        ValidateIssuer = true,           // Se valida que el token provenga del emisor correcto
+        ValidateAudience = true,         // Se valida que el token sea para la audiencia esperada
+        ValidateLifetime = true,         // Se verifica que el token no haya expirado
+        ClockSkew = TimeSpan.Zero,       // Evita retrasos en la expiración del token
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],           // Obtener el Issuer desde appsettings.json
+        ValidAudience = builder.Configuration["Jwt:Audience"],       // Obtener el Audience desde appsettings.json
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+    };
+});
+
+// Agregar servicios de controladores
+builder.Services.AddControllers();
+
+
+
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();
