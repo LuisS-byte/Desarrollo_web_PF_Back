@@ -1,4 +1,5 @@
 ﻿using Desarrollo_web_PF_Back.Models;
+using Desarrollo_web_PF_Back.Models.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -43,13 +44,15 @@ namespace Desarrollo_web_PF_Back.Controllers
             var lista = await (from Ticket in _dbPruebaContext.Tickets
                                join prioridad in _dbPruebaContext.Prioridads on Ticket.IdPrioridad equals prioridad.IdPrioridad
                                join Estado in _dbPruebaContext.Estados on Ticket.IdEstado equals Estado.IdEstado
+                               join Service in _dbPruebaContext.Servicios on Ticket.IdServicio equals Service.IdServicio
                                where Ticket.IdEstado == 1
                                select new
                                {
                                    Id = Ticket.IdTickets,
                                    Titulo = Ticket.TickDescripcion,
                                    Fecha = Ticket.TickFechacreacion,
-                                   Prioridad = prioridad.PrioriNombre
+                                   Prioridad = prioridad.PrioriNombre,
+                                   categoria = Service.ServNombre
                                }).ToListAsync();
             return StatusCode(StatusCodes.Status200OK, new { value = lista });
 
@@ -68,7 +71,7 @@ namespace Desarrollo_web_PF_Back.Controllers
                                    Id = tickets.IdTickets,
                                    Titulo = tickets.TickDescripcion,
                                    Estado = Estado.EstNombre,
-                                   Tecnico = usuario.UsuNombre+" "+usuario.UsuApellido,
+                                   Tecnico = usuario.UsuNombre + " " + usuario.UsuApellido,
                                    FechaAsignacion = ticketAsig.FechaAsignacion
                                }).ToListAsync();
 
@@ -76,10 +79,82 @@ namespace Desarrollo_web_PF_Back.Controllers
 
         }
 
+        [HttpGet]
+        [Route("ListaPrioridades")]
+        public async Task<IActionResult> ListaPrioridades()
+        {
+            var lista = await (from prioridad in _dbPruebaContext.Prioridads
+                               select new { id = prioridad.IdPrioridad, nombre = prioridad.PrioriNombre, descripcion = prioridad.PrioriDescripcion }).ToListAsync();
+            return StatusCode(StatusCodes.Status200OK, new { value = lista });
+        }
 
-    } 
+
+        [HttpGet]
+        [Route("ListaEstados")]
+        public async Task<IActionResult> ListaEstados()
+        {
+            var lista = await (from estados in _dbPruebaContext.Estados
+                               select new { id = estados.IdEstado, nombre = estados.EstNombre, descripcion = estados.EstDescripcion }).ToListAsync();
+            return StatusCode(StatusCodes.Status200OK, new { value = lista });
+        }
+
+        [HttpGet]
+        [Route("ListaServicios")]
+        public async Task<IActionResult> ListaServicios()
+        {
+            var lista = await (from servicios in _dbPruebaContext.Servicios
+                               select new { id = servicios.IdServicio, categoria = servicios.ServNombre, descripcion = servicios.SerDescripcion }).ToListAsync();
+            return StatusCode(StatusCodes.Status200OK, new { value = lista });
+        }
+
+        [HttpGet]
+        [Route("ListaTecnicos")]
+        public async Task<IActionResult> ListaTecnicos()
+        {
+            var lista = await (from usuarios in _dbPruebaContext.Usuarios
+                               where usuarios.IdUsuario == 2
+                               select new
+                               {
+                                   id = usuarios.IdUsuario,
+                                   nombre = usuarios.UsuNombre + " " + usuarios.UsuApellido
+                               }
+                               ).ToListAsync();
+            return StatusCode(StatusCodes.Status200OK, new { value = lista });
+        }
 
 
+        [HttpPost]
+        [Route("CrearTicketAsignacion")]
+        public async Task<IActionResult> CrearTicketAsignacion([FromBody] TicketAsignacionDTO ticketAsignacionDTO)
+        {
+            if (ticketAsignacionDTO == null || ticketAsignacionDTO.IdTicket <= 0 || ticketAsignacionDTO.IdUsuairo <= 0)
+            {
+                return BadRequest("Datos inválidos para la asignación del ticket.");
+            }
+            var ticket = await _dbPruebaContext.Tickets.FindAsync(ticketAsignacionDTO.IdTicket);
+            if (ticket == null)
+            {
+                return NotFound("Ticket no encontrado.");
+            }
+            var usuario = await _dbPruebaContext.Usuarios.FindAsync(ticketAsignacionDTO.IdUsuairo);
+            if (usuario == null)
+            {
+                return NotFound("Usuario no encontrado.");
+            }
+            var nuevaAsignacion = new TicketxAsignacion
+            {
+                IdTicket = ticketAsignacionDTO.IdTicket,
+                IdUsuario = ticketAsignacionDTO.IdUsuairo,
+                FechaAsignacion = DateTime.Now,
+                Descripcion = ticketAsignacionDTO.descripcion
+            };
+            _dbPruebaContext.TicketxAsignacions.Add(nuevaAsignacion);
+            await _dbPruebaContext.SaveChangesAsync();
+            return StatusCode(StatusCodes.Status201Created, new { message = "Ticket asignado correctamente." });
+
+        }
+
+    }
 }
 
         /*

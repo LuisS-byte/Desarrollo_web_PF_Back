@@ -33,8 +33,64 @@
   },
   {
     "ContainingType": "Desarrollo_web_PF_Back.Controllers.AdministradorController",
+    "Method": "CrearTicketAsignacion",
+    "RelativePath": "api/Administrador/CrearTicketAsignacion",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "ticketAsignacionDTO",
+        "Type": "Desarrollo_web_PF_Back.Models.DTOs.TicketAsignacionDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Desarrollo_web_PF_Back.Controllers.AdministradorController",
     "Method": "ListaConteoTickets",
     "RelativePath": "api/Administrador/ListaConteoTickets",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Desarrollo_web_PF_Back.Controllers.AdministradorController",
+    "Method": "ListaEstados",
+    "RelativePath": "api/Administrador/ListaEstados",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Desarrollo_web_PF_Back.Controllers.AdministradorController",
+    "Method": "ListaPrioridades",
+    "RelativePath": "api/Administrador/ListaPrioridades",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Desarrollo_web_PF_Back.Controllers.AdministradorController",
+    "Method": "ListaServicios",
+    "RelativePath": "api/Administrador/ListaServicios",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Desarrollo_web_PF_Back.Controllers.AdministradorController",
+    "Method": "ListaTecnicos",
+    "RelativePath": "api/Administrador/ListaTecnicos",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
