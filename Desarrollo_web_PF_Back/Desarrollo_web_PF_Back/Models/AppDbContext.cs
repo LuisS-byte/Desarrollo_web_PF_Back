@@ -214,6 +214,11 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.IdTicket).HasColumnName("ID_TICKET");
             entity.Property(e => e.IdUsuario).HasColumnName("ID_USUARIO");
 
+            entity.Property(e => e.FechaAsignacion)
+        .HasColumnType("datetime")
+        .HasColumnName("FECHA_ASIGNACION")
+        .HasDefaultValueSql("GETDATE()"); 
+
             entity.HasOne(d => d.IdTicketNavigation).WithMany(p => p.TicketxAsignacions)
                 .HasForeignKey(d => d.IdTicket)
                 .HasConstraintName("FK__TICKETxAS__ID_TI__4AB81AF0");

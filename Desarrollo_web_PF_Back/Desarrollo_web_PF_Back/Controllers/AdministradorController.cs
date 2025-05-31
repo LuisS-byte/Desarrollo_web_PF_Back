@@ -35,8 +35,46 @@ namespace Desarrollo_web_PF_Back.Controllers
                                }).ToListAsync();
             return StatusCode(StatusCodes.Status200OK, new { value = lista });
         }
-    
 
+        [HttpGet]
+        [Route("TicketsPendientesAsignacion")]
+        public async Task<IActionResult> TicketsPendientesAsignacion()
+        {
+            var lista = await (from Ticket in _dbPruebaContext.Tickets
+                               join prioridad in _dbPruebaContext.Prioridads on Ticket.IdPrioridad equals prioridad.IdPrioridad
+                               join Estado in _dbPruebaContext.Estados on Ticket.IdEstado equals Estado.IdEstado
+                               where Ticket.IdEstado == 1
+                               select new
+                               {
+                                   Id = Ticket.IdTickets,
+                                   Titulo = Ticket.TickDescripcion,
+                                   Fecha = Ticket.TickFechacreacion,
+                                   Prioridad = prioridad.PrioriNombre
+                               }).ToListAsync();
+            return StatusCode(StatusCodes.Status200OK, new { value = lista });
+
+        }
+
+        [HttpGet]
+        [Route("TicketsAsignados")]
+        public async Task<IActionResult> TicketsAsignados()
+        {
+            var lista = await (from ticketAsig in _dbPruebaContext.TicketxAsignacions
+                               join tickets in _dbPruebaContext.Tickets on ticketAsig.IdTicket equals tickets.IdTickets
+                               join Estado in _dbPruebaContext.Estados on tickets.IdEstado equals Estado.IdEstado
+                               join usuario in _dbPruebaContext.Usuarios on ticketAsig.IdUsuario equals usuario.IdUsuario
+                               select new
+                               {
+                                   Id = tickets.IdTickets,
+                                   Titulo = tickets.TickDescripcion,
+                                   Estado = Estado.EstNombre,
+                                   Tecnico = usuario.UsuNombre+" "+usuario.UsuApellido,
+                                   FechaAsignacion = ticketAsig.FechaAsignacion
+                               }).ToListAsync();
+
+            return StatusCode(StatusCodes.Status200OK, new { value = lista });
+
+        }
 
 
     } 
