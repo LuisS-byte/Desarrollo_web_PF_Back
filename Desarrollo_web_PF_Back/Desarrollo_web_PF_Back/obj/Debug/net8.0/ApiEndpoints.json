@@ -32,6 +32,16 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "Desarrollo_web_PF_Back.Controllers.AdministradorController",
+    "Method": "ListaConteoTickets",
+    "RelativePath": "api/Administrador/ListaConteoTickets",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "Desarrollo_web_PF_Back.Controllers.PruebaJwtController",
     "Method": "ListaAdmin",
     "RelativePath": "api/PruebaJwt/ListaAdmin",

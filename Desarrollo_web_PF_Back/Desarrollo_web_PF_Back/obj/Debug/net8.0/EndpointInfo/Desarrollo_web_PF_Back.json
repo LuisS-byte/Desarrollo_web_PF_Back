@@ -67,6 +67,18 @@
         }
       }
     },
+    "/api/Administrador/ListaConteoTickets": {
+      "get": {
+        "tags": [
+          "Administrador"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/PruebaJwt/ListaAdmin": {
       "get": {
         "tags": [
