@@ -13,6 +13,8 @@ public partial class TicketxAsignacion
 
     public string? Descripcion { get; set; }
 
+    public DateTime? FechaAsignacion { get; set; } 
+
     public virtual Ticket? IdTicketNavigation { get; set; }
 
     public virtual Usuario? IdUsuarioNavigation { get; set; }

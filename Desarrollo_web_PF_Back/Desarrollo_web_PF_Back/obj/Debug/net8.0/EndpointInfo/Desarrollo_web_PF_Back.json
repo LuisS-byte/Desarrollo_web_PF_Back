@@ -79,6 +79,30 @@
         }
       }
     },
+    "/api/Administrador/TicketsPendientesAsignacion": {
+      "get": {
+        "tags": [
+          "Administrador"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Administrador/TicketsAsignados": {
+      "get": {
+        "tags": [
+          "Administrador"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/PruebaJwt/ListaAdmin": {
       "get": {
         "tags": [
