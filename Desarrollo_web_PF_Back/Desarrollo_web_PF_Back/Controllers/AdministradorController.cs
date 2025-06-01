@@ -127,31 +127,76 @@ namespace Desarrollo_web_PF_Back.Controllers
         [Route("CrearTicketAsignacion")]
         public async Task<IActionResult> CrearTicketAsignacion([FromBody] TicketAsignacionDTO ticketAsignacionDTO)
         {
-            if (ticketAsignacionDTO == null || ticketAsignacionDTO.IdTicket <= 0 || ticketAsignacionDTO.IdUsuairo <= 0)
+            try
             {
-                return BadRequest("Datos inválidos para la asignación del ticket.");
-            }
-            var ticket = await _dbPruebaContext.Tickets.FindAsync(ticketAsignacionDTO.IdTicket);
-            if (ticket == null)
-            {
-                return NotFound("Ticket no encontrado.");
-            }
-            var usuario = await _dbPruebaContext.Usuarios.FindAsync(ticketAsignacionDTO.IdUsuairo);
-            if (usuario == null)
-            {
-                return NotFound("Usuario no encontrado.");
-            }
-            var nuevaAsignacion = new TicketxAsignacion
-            {
-                IdTicket = ticketAsignacionDTO.IdTicket,
-                IdUsuario = ticketAsignacionDTO.IdUsuairo,
-                FechaAsignacion = DateTime.Now,
-                Descripcion = ticketAsignacionDTO.descripcion
-            };
-            _dbPruebaContext.TicketxAsignacions.Add(nuevaAsignacion);
-            await _dbPruebaContext.SaveChangesAsync();
-            return StatusCode(StatusCodes.Status201Created, new { message = "Ticket asignado correctamente." });
+                if (ticketAsignacionDTO == null || ticketAsignacionDTO.IdTicket <= 0 || ticketAsignacionDTO.IdUsuairo <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Datos inválidos para la asignación del ticket.",
+                        receivedData = ticketAsignacionDTO
+                    });
+                }
 
+                var ticket = await _dbPruebaContext.Tickets.FindAsync(ticketAsignacionDTO.IdTicket);
+                if (ticket == null)
+                {
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = $"Ticket con ID {ticketAsignacionDTO.IdTicket} no encontrado."
+                    });
+                }
+
+                var usuario = await _dbPruebaContext.Usuarios.FindAsync(ticketAsignacionDTO.IdUsuairo);
+                if (usuario == null)
+                {
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = $"Usuario con ID {ticketAsignacionDTO.IdUsuairo} no encontrado."
+                    });
+                }
+
+                var nuevaAsignacion = new TicketxAsignacion
+                {
+                    IdTicket = ticketAsignacionDTO.IdTicket,
+                    IdUsuario = ticketAsignacionDTO.IdUsuairo,
+                    FechaAsignacion = DateTime.Now,
+                    Descripcion = ticketAsignacionDTO.descripcion
+                };
+
+                _dbPruebaContext.TicketxAsignacions.Add(nuevaAsignacion);
+                await _dbPruebaContext.SaveChangesAsync();
+
+                var ticket2 = await _dbPruebaContext.Tickets.FindAsync(ticketAsignacionDTO.IdTicket);
+
+                if (ticket2 != null)
+                {
+                    ticket2.IdEstado = 4; 
+
+                    _dbPruebaContext.Tickets.Update(ticket2);
+                    await _dbPruebaContext.SaveChangesAsync(); 
+                }
+
+
+                return StatusCode(StatusCodes.Status201Created, new
+                {
+                    success = true
+                });
+            }
+            catch (Exception ex)
+            {
+                // Loggear el error aquí
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    success = false,
+                    message = "Error interno al asignar el ticket.",
+                    errorDetails = ex.Message,
+                    innerException = ex.InnerException?.Message
+                });
+            }
         }
 
     }
