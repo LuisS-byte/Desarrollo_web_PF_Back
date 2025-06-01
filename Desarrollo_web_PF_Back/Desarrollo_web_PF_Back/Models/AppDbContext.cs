@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
 namespace Desarrollo_web_PF_Back.Models;
-
 public partial class AppDbContext : DbContext
 {
     public AppDbContext()
@@ -35,19 +34,19 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
 
-
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Data Source=.;Initial Catalog=DW;Integrated Security=True;Trusted_Connection=True;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ArchivoTicket>(entity =>
         {
-            entity.HasKey(e => e.IdArtick).HasName("PK__ARCHIVO___637BBED9ECC41517");
+            entity.HasKey(e => e.IdArtick).HasName("PK__ARCHIVO___637BBED9079BF1B2");
 
             entity.ToTable("ARCHIVO_TICKETS");
 
-            entity.Property(e => e.IdArtick)
-                .ValueGeneratedNever()
-                .HasColumnName("ID_ARTICK");
+            entity.Property(e => e.IdArtick).HasColumnName("ID_ARTICK");
             entity.Property(e => e.ArNombre)
                 .HasMaxLength(255)
                 .IsUnicode(false)
@@ -66,13 +65,11 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<ComentarioxTicket>(entity =>
         {
-            entity.HasKey(e => e.IdComentario).HasName("PK__COMENTAR__4B0815B168A682A9");
+            entity.HasKey(e => e.IdComentario).HasName("PK__COMENTAR__4B0815B1C07845F7");
 
             entity.ToTable("COMENTARIOxTICKET");
 
-            entity.Property(e => e.IdComentario)
-                .ValueGeneratedNever()
-                .HasColumnName("ID_COMENTARIO");
+            entity.Property(e => e.IdComentario).HasColumnName("ID_COMENTARIO");
             entity.Property(e => e.ComenDescripcion)
                 .HasMaxLength(255)
                 .IsUnicode(false)
@@ -91,13 +88,11 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Estado>(entity =>
         {
-            entity.HasKey(e => e.IdEstado).HasName("PK__ESTADO__241E2E0108BCBF3D");
+            entity.HasKey(e => e.IdEstado).HasName("PK__ESTADO__241E2E01092E2AC5");
 
             entity.ToTable("ESTADO");
 
-            entity.Property(e => e.IdEstado)
-                .ValueGeneratedNever()
-                .HasColumnName("ID_ESTADO");
+            entity.Property(e => e.IdEstado).HasColumnName("ID_ESTADO");
             entity.Property(e => e.EstDescripcion)
                 .HasMaxLength(255)
                 .IsUnicode(false)
@@ -110,13 +105,11 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Prioridad>(entity =>
         {
-            entity.HasKey(e => e.IdPrioridad).HasName("PK__PRIORIDA__295EBCCABDC77569");
+            entity.HasKey(e => e.IdPrioridad).HasName("PK__PRIORIDA__295EBCCA71B98D96");
 
             entity.ToTable("PRIORIDAD");
 
-            entity.Property(e => e.IdPrioridad)
-                .ValueGeneratedNever()
-                .HasColumnName("ID_PRIORIDAD");
+            entity.Property(e => e.IdPrioridad).HasColumnName("ID_PRIORIDAD");
             entity.Property(e => e.PrioriDescripcion)
                 .HasMaxLength(255)
                 .IsUnicode(false)
@@ -129,13 +122,11 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Rol>(entity =>
         {
-            entity.HasKey(e => e.IdRol).HasName("PK__ROL__203B0F6830E49F10");
+            entity.HasKey(e => e.IdRol).HasName("PK__ROL__203B0F6850CCF9F7");
 
             entity.ToTable("ROL");
 
-            entity.Property(e => e.IdRol)
-                .ValueGeneratedNever()
-                .HasColumnName("ID_ROL");
+            entity.Property(e => e.IdRol).HasColumnName("ID_ROL");
             entity.Property(e => e.RolNombre)
                 .HasMaxLength(50)
                 .IsUnicode(false)
@@ -144,13 +135,11 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Servicio>(entity =>
         {
-            entity.HasKey(e => e.IdServicio).HasName("PK__SERVICIO__C8BDE0EBB527E6C8");
+            entity.HasKey(e => e.IdServicio).HasName("PK__SERVICIO__C8BDE0EBA633CF5B");
 
             entity.ToTable("SERVICIO");
 
-            entity.Property(e => e.IdServicio)
-                .ValueGeneratedNever()
-                .HasColumnName("ID_SERVICIO");
+            entity.Property(e => e.IdServicio).HasColumnName("ID_SERVICIO");
             entity.Property(e => e.SerDescripcion)
                 .HasMaxLength(255)
                 .IsUnicode(false)
@@ -163,13 +152,11 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Ticket>(entity =>
         {
-            entity.HasKey(e => e.IdTickets).HasName("PK__TICKETS__20129F59F2C09DB5");
+            entity.HasKey(e => e.IdTickets).HasName("PK__TICKETS__20129F599444239A");
 
             entity.ToTable("TICKETS");
 
-            entity.Property(e => e.IdTickets)
-                .ValueGeneratedNever()
-                .HasColumnName("ID_TICKETS");
+            entity.Property(e => e.IdTickets).HasColumnName("ID_TICKETS");
             entity.Property(e => e.IdEstado).HasColumnName("ID_ESTADO");
             entity.Property(e => e.IdPrioridad).HasColumnName("ID_PRIORIDAD");
             entity.Property(e => e.IdServicio).HasColumnName("ID_SERVICIO");
@@ -200,24 +187,21 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<TicketxAsignacion>(entity =>
         {
-            entity.HasKey(e => e.IdAsignacion).HasName("PK__TICKETxA__FDFF35BFF4B96F2B");
+            entity.HasKey(e => e.IdAsignacion).HasName("PK__TICKETxA__FDFF35BFE096BA5C");
 
             entity.ToTable("TICKETxASIGNACION");
 
-            entity.Property(e => e.IdAsignacion)
-                .ValueGeneratedNever()
-                .HasColumnName("ID_ASIGNACION");
+            entity.Property(e => e.IdAsignacion).HasColumnName("ID_ASIGNACION");
             entity.Property(e => e.Descripcion)
                 .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasColumnName("DESCRIPCION");
+            entity.Property(e => e.FechaAsignacion)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("fecha_asignacion");
             entity.Property(e => e.IdTicket).HasColumnName("ID_TICKET");
             entity.Property(e => e.IdUsuario).HasColumnName("ID_USUARIO");
-
-            entity.Property(e => e.FechaAsignacion)
-        .HasColumnType("datetime")
-        .HasColumnName("FECHA_ASIGNACION")
-        .HasDefaultValueSql("GETDATE()"); 
 
             entity.HasOne(d => d.IdTicketNavigation).WithMany(p => p.TicketxAsignacions)
                 .HasForeignKey(d => d.IdTicket)
@@ -230,13 +214,11 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<TicketxCambioestado>(entity =>
         {
-            entity.HasKey(e => e.IdComentario).HasName("PK__TICKETxC__4B0815B12D929DF3");
+            entity.HasKey(e => e.IdComentario).HasName("PK__TICKETxC__4B0815B1B5D3C175");
 
             entity.ToTable("TICKETxCAMBIOESTADO");
 
-            entity.Property(e => e.IdComentario)
-                .ValueGeneratedNever()
-                .HasColumnName("ID_COMENTARIO");
+            entity.Property(e => e.IdComentario).HasColumnName("ID_COMENTARIO");
             entity.Property(e => e.EstadoAnterior).HasColumnName("ESTADO_ANTERIOR");
             entity.Property(e => e.EstadoNuevo).HasColumnName("ESTADO_NUEVO");
             entity.Property(e => e.FechaCambio).HasColumnName("FECHA_CAMBIO");
@@ -262,13 +244,11 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Usuario>(entity =>
         {
-            entity.HasKey(e => e.IdUsuario).HasName("PK__USUARIO__91136B90ADACAAD9");
+            entity.HasKey(e => e.IdUsuario).HasName("PK__USUARIO__91136B909A39A1B3");
 
             entity.ToTable("USUARIO");
 
-            entity.Property(e => e.IdUsuario)
-                .ValueGeneratedNever()
-                .HasColumnName("ID_USUARIO");
+            entity.Property(e => e.IdUsuario).HasColumnName("ID_USUARIO");
             entity.Property(e => e.IdRol).HasColumnName("ID_ROL");
             entity.Property(e => e.UsuApellido)
                 .HasMaxLength(255)
