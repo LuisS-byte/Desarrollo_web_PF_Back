@@ -106,8 +106,7 @@
               "RelativeToolTip": "Desarrollo_web_PF_Back\\Models\\AppDbContext.cs",
               "ViewState": "AgIAANYAAAAAAAAAAAAnwOsAAABaAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-31T22:53:32.581Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-31T22:53:32.581Z"
             },
             {
               "$type": "Document",
@@ -119,8 +118,7 @@
               "RelativeToolTip": "Desarrollo_web_PF_Back\\Models\\TicketxAsignacion.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-31T22:43:00.553Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-31T22:43:00.553Z"
             },
             {
               "$type": "Document",
@@ -132,8 +130,7 @@
               "RelativeToolTip": "Desarrollo_web_PF_Back\\Models\\DTOs\\TicketAsignacionDTO.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-31T20:27:48.033Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-31T20:27:48.033Z"
             },
             {
               "$type": "Document",
@@ -143,7 +140,7 @@
               "RelativeDocumentMoniker": "Desarrollo_web_PF_Back\\Controllers\\AdministradorController.cs",
               "ToolTip": "D:\\CursosRealizados\\GitHub\\Desarrollo_web_PF_Back\\Desarrollo_web_PF_Back\\Desarrollo_web_PF_Back\\Controllers\\AdministradorController.cs",
               "RelativeToolTip": "Desarrollo_web_PF_Back\\Controllers\\AdministradorController.cs",
-              "ViewState": "AgIAAKYAAAAAAAAAAAASwLkAAAAiAAAAAAAAAA==",
+              "ViewState": "AgIAAJMAAAAAAAAAAAAIwH8AAAAsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-05-31T02:46:30.42Z",
               "EditorCaption": ""
@@ -156,7 +153,7 @@
               "RelativeDocumentMoniker": "Desarrollo_web_PF_Back\\Controllers\\PruebaJwtController.cs",
               "ToolTip": "D:\\CursosRealizados\\GitHub\\Desarrollo_web_PF_Back\\Desarrollo_web_PF_Back\\Desarrollo_web_PF_Back\\Controllers\\PruebaJwtController.cs",
               "RelativeToolTip": "Desarrollo_web_PF_Back\\Controllers\\PruebaJwtController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAIAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-05-31T02:46:08.266Z",
               "EditorCaption": ""
@@ -171,8 +168,7 @@
               "RelativeToolTip": "Desarrollo_web_PF_Back\\Program.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-30T21:41:03.765Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-30T21:41:03.765Z"
             }
           ]
         }

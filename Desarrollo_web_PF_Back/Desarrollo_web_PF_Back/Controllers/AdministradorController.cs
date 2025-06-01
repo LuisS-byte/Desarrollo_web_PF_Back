@@ -1,5 +1,6 @@
 ﻿using Desarrollo_web_PF_Back.Models;
 using Desarrollo_web_PF_Back.Models.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,11 +18,8 @@ namespace Desarrollo_web_PF_Back.Controllers
             _dbPruebaContext = appDbContext;
         }
 
-
-
-
-
         [HttpGet]
+        [Authorize(Roles = "Administrador")]
         [Route("ListaConteoTickets")]
         public async Task<IActionResult> ListaConteoTickets()
         {
@@ -38,6 +36,7 @@ namespace Desarrollo_web_PF_Back.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Administrador")]
         [Route("TicketsPendientesAsignacion")]
         public async Task<IActionResult> TicketsPendientesAsignacion()
         {
@@ -59,6 +58,7 @@ namespace Desarrollo_web_PF_Back.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Administrador")]
         [Route("TicketsAsignados")]
         public async Task<IActionResult> TicketsAsignados()
         {
@@ -88,8 +88,8 @@ namespace Desarrollo_web_PF_Back.Controllers
             return StatusCode(StatusCodes.Status200OK, new { value = lista });
         }
 
-
         [HttpGet]
+        [Authorize(Roles = "Administrador")]
         [Route("ListaEstados")]
         public async Task<IActionResult> ListaEstados()
         {
@@ -99,6 +99,7 @@ namespace Desarrollo_web_PF_Back.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Administrador")]
         [Route("ListaServicios")]
         public async Task<IActionResult> ListaServicios()
         {
@@ -108,6 +109,7 @@ namespace Desarrollo_web_PF_Back.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Administrador")]
         [Route("ListaTecnicos")]
         public async Task<IActionResult> ListaTecnicos()
         {
@@ -122,8 +124,8 @@ namespace Desarrollo_web_PF_Back.Controllers
             return StatusCode(StatusCodes.Status200OK, new { value = lista });
         }
 
-
         [HttpPost]
+        [Authorize(Roles = "Administrador")]
         [Route("CrearTicketAsignacion")]
         public async Task<IActionResult> CrearTicketAsignacion([FromBody] TicketAsignacionDTO ticketAsignacionDTO)
         {
@@ -188,7 +190,6 @@ namespace Desarrollo_web_PF_Back.Controllers
             }
             catch (Exception ex)
             {
-                // Loggear el error aquí
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
                     success = false,
@@ -201,22 +202,3 @@ namespace Desarrollo_web_PF_Back.Controllers
 
     }
 }
-
-        /*
-    [HttpGet]
-    [Route("ObtenerInfTockes")]
-    public async Task<IActionResult> ObtenerInfTockes()
-    {
-            var lista = await (from TicketTotal in _dbPruebaContext.TicketxAsignacions 
-                               join Ticket in _dbPruebaContext.Tickets on TicketTotal.IdTicket equals Ticket.IdTickets
-                               join Prioridad in _dbPruebaContext.Prioridads on Ticket.IdPrioridad equals Prioridad.IdPrioridad
-                               join Estado in _dbPruebaContext.Estados on Ticket.IdEstado equals Estado.IdEstado
-                               select new
-                               {
-
-                               }
-                               )
-        }
-    }
-        */
-    

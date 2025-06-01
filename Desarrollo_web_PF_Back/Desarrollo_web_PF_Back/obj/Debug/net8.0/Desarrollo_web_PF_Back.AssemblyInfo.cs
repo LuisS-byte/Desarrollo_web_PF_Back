@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Desarrollo_web_PF_Back")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+68051fc0a3921347bc5bb7ff22b32b06316cd403")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e0e712739555a303b1aaf68cf434ef06308c210e")]
 [assembly: System.Reflection.AssemblyProductAttribute("Desarrollo_web_PF_Back")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Desarrollo_web_PF_Back")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
