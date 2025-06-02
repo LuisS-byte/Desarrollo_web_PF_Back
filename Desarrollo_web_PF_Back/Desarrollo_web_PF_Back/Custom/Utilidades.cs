@@ -36,7 +36,9 @@ namespace Desarrollo_web_PF_Back.Custom
             {
                 new Claim(ClaimTypes.NameIdentifier, usuario.IdUsuario.ToString()),
                 new Claim(ClaimTypes.Email, usuario.UsuCorreo!),
-                new Claim(ClaimTypes.Role, usuario.Rol.RolNombre!)
+                new Claim(ClaimTypes.Role, usuario.Rol.RolNombre!),
+                new Claim("name", $"{usuario.UsuNombre} {usuario.UsuApellido}")
+
             };
 
             // Obtener la clave secreta desde la configuración
