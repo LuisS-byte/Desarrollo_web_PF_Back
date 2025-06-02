@@ -1,9 +1,11 @@
 using Desarrollo_web_PF_Back.Custom;
 using Desarrollo_web_PF_Back.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,8 +48,20 @@ builder.Services.AddAuthentication(config =>
 // Agregar servicios de controladores
 builder.Services.AddControllers();
 
-
-
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 50 * 1024 * 1024; // 50MB
+    options.ValueLengthLimit = int.MaxValue;
+    options.MultipartHeadersLengthLimit = int.MaxValue;
+    options.KeyLengthLimit = int.MaxValue;
+    options.MultipartBoundaryLengthLimit = int.MaxValue;
+});
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 50 * 1024 * 1024; // 50MB
+    options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(2);
+    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(2);
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -71,11 +85,31 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseStaticFiles();//Para subir archivos estáticos.
 // Aplicar la política CORS
 app.UseCors("NewPolicy");
 
-app.UseAuthorization();
+
+app.UseAuthentication();
+app.UseAuthorization(); //PRUEBA DEL JTW
 
 app.MapControllers();
+app.Use(async (context, next) =>
+{
+    Console.WriteLine($"=== REQUEST: {context.Request.Method} {context.Request.Path} ===");
+    Console.WriteLine($"Content-Type: {context.Request.ContentType}");
+    Console.WriteLine($"Content-Length: {context.Request.ContentLength}");
 
+    try
+    {
+        await next();
+        Console.WriteLine($"=== RESPONSE: {context.Response.StatusCode} ===");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"=== MIDDLEWARE ERROR: {ex.Message} ===");
+        Console.WriteLine($"=== STACK: {ex.StackTrace} ===");
+        throw;
+    }
+});
 app.Run();
