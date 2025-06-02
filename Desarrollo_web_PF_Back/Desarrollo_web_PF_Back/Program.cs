@@ -18,10 +18,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("CadenaSQL")));
 
 
-// Agregar el servicio de Utilidades para encriptación y generación de tokens JWT
+// Agregar el servicio de Utilidades para encriptaciï¿½n y generaciï¿½n de tokens JWT
 builder.Services.AddSingleton<Utilidades>();
 
-// Configurar autenticación JWT
+// Configurar autenticaciï¿½n JWT
 builder.Services.AddAuthentication(config =>
 {
     config.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -37,7 +37,7 @@ builder.Services.AddAuthentication(config =>
         ValidateIssuer = true,           // Se valida que el token provenga del emisor correcto
         ValidateAudience = true,         // Se valida que el token sea para la audiencia esperada
         ValidateLifetime = true,         // Se verifica que el token no haya expirado
-        ClockSkew = TimeSpan.Zero,       // Evita retrasos en la expiración del token
+        ClockSkew = TimeSpan.Zero,       // Evita retrasos en la expiraciï¿½n del token
         ValidIssuer = builder.Configuration["Jwt:Issuer"],           // Obtener el Issuer desde appsettings.json
         ValidAudience = builder.Configuration["Jwt:Audience"],       // Obtener el Audience desde appsettings.json
         IssuerSigningKey = new SymmetricSecurityKey(
@@ -85,8 +85,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseStaticFiles();//Para subir archivos estáticos.
-// Aplicar la política CORS
+app.UseStaticFiles();//Para subir archivos estï¿½ticos.
+// Aplicar la polï¿½tica CORS
 app.UseCors("NewPolicy");
 
 
