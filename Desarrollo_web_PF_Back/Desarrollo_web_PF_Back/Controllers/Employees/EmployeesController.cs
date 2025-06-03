@@ -9,7 +9,7 @@ namespace Desarrollo_web_PF_Back.Controllers.Employees
 {
     [ApiController]
     [Route("api/employees")]
-    // [Authorize] // COMENTADO TEMPORALMENTE - DESCOMENTAR CUANDO SE ACTIVE JWT
+    [Authorize] // HABILITADO - Requiere autenticación JWT
     public class EmployeesController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -22,46 +22,36 @@ namespace Desarrollo_web_PF_Back.Controllers.Employees
         }
 
         /// <summary>
-        /// Obtiene los tickets del usuario con paginación y estadísticas
+        /// Obtiene los tickets del usuario autenticado con paginación y estadísticas
         /// </summary>
-        /// <param name="userId">ID del usuario</param>
         /// <param name="currentPage">Página actual (por defecto 1)</param>
         /// <param name="pageSize">Tamaño de página (por defecto 10, máximo 100)</param>
         [HttpGet("my-tickets")]
         public async Task<IActionResult> GetMyTickets(
-            [FromQuery] int userId,
             [FromQuery] int currentPage = 1,
             [FromQuery] int pageSize = 10)
         {
             try
             {
-                // TODO: DESCOMENTAR CUANDO SE ACTIVE JWT
-                //// Obtener el ID del usuario autenticado
-                //var identity = HttpContext.User.Identity as ClaimsIdentity;
-                //int userId = int.Parse(identity?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-
-                //if (userId == 0)
-                //{
-                //    _logger.LogWarning("No se pudo obtener el ID del usuario autenticado");
-                //    return Unauthorized(new { message = "Usuario no autenticado" });
-                //}
-
-                // VALIDACIÓN TEMPORAL - VERIFICAR QUE SE PROPORCIONE EL userId
-                if (userId <= 0)
+                // Obtener el ID del usuario autenticado desde el token JWT
+                var identity = HttpContext.User.Identity as ClaimsIdentity;
+                var userIdClaim = identity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                
+                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId) || userId <= 0)
                 {
-                    _logger.LogWarning("ID de usuario no válido: {UserId}", userId);
-                    return BadRequest(new { message = "ID de usuario requerido y debe ser mayor a 0" });
+                    _logger.LogWarning("No se pudo obtener el ID del usuario autenticado desde el token");
+                    return Unauthorized(new { message = "Usuario no autenticado o token inválido" });
                 }
 
-                // Verificar que el usuario existe
+                // Verificar que el usuario existe en la base de datos
                 var usuarioExiste = await _context.Usuarios.AnyAsync(u => u.IdUsuario == userId);
                 if (!usuarioExiste)
                 {
-                    _logger.LogWarning("Usuario con ID {UserId} no encontrado", userId);
+                    _logger.LogWarning("Usuario con ID {UserId} no encontrado en base de datos", userId);
                     return NotFound(new { message = $"Usuario con ID {userId} no encontrado" });
                 }
 
-                _logger.LogInformation("Obteniendo tickets para usuario {UserId} - Página: {CurrentPage}, Tamaño: {PageSize}", 
+                _logger.LogInformation("Obteniendo tickets para usuario autenticado {UserId} - Página: {CurrentPage}, Tamaño: {PageSize}", 
                     userId, currentPage, pageSize);
 
                 // Validaciones
@@ -134,46 +124,36 @@ namespace Desarrollo_web_PF_Back.Controllers.Employees
         }
 
         /// <summary>
-        /// Obtiene los tickets ASIGNADOS al usuario (como técnico) con paginación y estadísticas
+        /// Obtiene los tickets ASIGNADOS al usuario autenticado (como técnico) con paginación y estadísticas
         /// </summary>
-        /// <param name="userId">ID del usuario técnico</param>
         /// <param name="currentPage">Página actual (por defecto 1)</param>
         /// <param name="pageSize">Tamaño de página (por defecto 10, máximo 100)</param>
         [HttpGet("assigned-tickets")]
         public async Task<IActionResult> GetAssignedTickets(
-            [FromQuery] int userId,
             [FromQuery] int currentPage = 1,
             [FromQuery] int pageSize = 10)
         {
             try
             {
-                // TODO: DESCOMENTAR CUANDO SE ACTIVE JWT
-                //// Obtener el ID del usuario autenticado
-                //var identity = HttpContext.User.Identity as ClaimsIdentity;
-                //int userId = int.Parse(identity?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-
-                //if (userId == 0)
-                //{
-                //    _logger.LogWarning("No se pudo obtener el ID del usuario autenticado");
-                //    return Unauthorized(new { message = "Usuario no autenticado" });
-                //}
-
-                // VALIDACIÓN TEMPORAL - VERIFICAR QUE SE PROPORCIONE EL userId
-                if (userId <= 0)
+                // Obtener el ID del usuario autenticado desde el token JWT
+                var identity = HttpContext.User.Identity as ClaimsIdentity;
+                var userIdClaim = identity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                
+                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId) || userId <= 0)
                 {
-                    _logger.LogWarning("ID de usuario no válido: {UserId}", userId);
-                    return BadRequest(new { message = "ID de usuario requerido y debe ser mayor a 0" });
+                    _logger.LogWarning("No se pudo obtener el ID del usuario autenticado desde el token");
+                    return Unauthorized(new { message = "Usuario no autenticado o token inválido" });
                 }
 
-                // Verificar que el usuario existe
+                // Verificar que el usuario existe en la base de datos
                 var usuarioExiste = await _context.Usuarios.AnyAsync(u => u.IdUsuario == userId);
                 if (!usuarioExiste)
                 {
-                    _logger.LogWarning("Usuario con ID {UserId} no encontrado", userId);
+                    _logger.LogWarning("Usuario con ID {UserId} no encontrado en base de datos", userId);
                     return NotFound(new { message = $"Usuario con ID {userId} no encontrado" });
                 }
 
-                _logger.LogInformation("Obteniendo tickets asignados para usuario {UserId} - Página: {CurrentPage}, Tamaño: {PageSize}", 
+                _logger.LogInformation("Obteniendo tickets asignados para usuario autenticado {UserId} - Página: {CurrentPage}, Tamaño: {PageSize}", 
                     userId, currentPage, pageSize);
 
                 // Validaciones
@@ -264,42 +244,33 @@ namespace Desarrollo_web_PF_Back.Controllers.Employees
         }
 
         /// <summary>
-        /// Obtiene un ticket específico por ID (solo si pertenece al usuario especificado)
+        /// Obtiene un ticket específico por ID (solo si pertenece al usuario autenticado)
         /// </summary>
         /// <param name="id">ID del ticket</param>
-        /// <param name="userId">ID del usuario</param>
         [HttpGet("my-tickets/{id}")]
-        public async Task<IActionResult> GetMyTicketById(int id, [FromQuery] int userId)
+        public async Task<IActionResult> GetMyTicketById(int id)
         {
             try
             {
-                // TODO: DESCOMENTAR CUANDO SE ACTIVE JWT
-                //// Obtener el ID del usuario autenticado
-                //var identity = HttpContext.User.Identity as ClaimsIdentity;
-                //int userId = int.Parse(identity?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-
-                //if (userId == 0)
-                //{
-                //    _logger.LogWarning("No se pudo obtener el ID del usuario autenticado");
-                //    return Unauthorized(new { message = "Usuario no autenticado" });
-                //}
-
-                // VALIDACIÓN TEMPORAL - VERIFICAR QUE SE PROPORCIONE EL userId
-                if (userId <= 0)
+                // Obtener el ID del usuario autenticado desde el token JWT
+                var identity = HttpContext.User.Identity as ClaimsIdentity;
+                var userIdClaim = identity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                
+                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId) || userId <= 0)
                 {
-                    _logger.LogWarning("ID de usuario no válido: {UserId}", userId);
-                    return BadRequest(new { message = "ID de usuario requerido y debe ser mayor a 0" });
+                    _logger.LogWarning("No se pudo obtener el ID del usuario autenticado desde el token");
+                    return Unauthorized(new { message = "Usuario no autenticado o token inválido" });
                 }
 
-                // Verificar que el usuario existe
+                // Verificar que el usuario existe en la base de datos
                 var usuarioExiste = await _context.Usuarios.AnyAsync(u => u.IdUsuario == userId);
                 if (!usuarioExiste)
                 {
-                    _logger.LogWarning("Usuario con ID {UserId} no encontrado", userId);
+                    _logger.LogWarning("Usuario con ID {UserId} no encontrado en base de datos", userId);
                     return NotFound(new { message = $"Usuario con ID {userId} no encontrado" });
                 }
 
-                _logger.LogInformation("Obteniendo ticket {TicketId} para usuario {UserId}", id, userId);
+                _logger.LogInformation("Obteniendo ticket {TicketId} para usuario autenticado {UserId}", id, userId);
 
                 var ticket = await _context.Tickets
                     .Where(t => t.IdTickets == id && t.IdUsuario == userId) // Solo tickets del usuario
@@ -431,13 +402,12 @@ namespace Desarrollo_web_PF_Back.Controllers.Employees
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener ticket {TicketId} del usuario {UserId}", id, userId);
                 return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
             }
         }
 
         /// <summary>
-        /// Crea un nuevo ticket para el empleado
+        /// Crea un nuevo ticket para el usuario autenticado
         /// </summary>
         /// <param name="dto">Datos del ticket a crear</param>
         [HttpPost("create-ticket")]
@@ -447,32 +417,24 @@ namespace Desarrollo_web_PF_Back.Controllers.Employees
         {
             try
             {
-                _logger.LogInformation("Iniciando creación de ticket para empleado");
-
-                // TODO: DESCOMENTAR CUANDO SE ACTIVE JWT
-                //// Obtener el ID del usuario autenticado
-                //var identity = HttpContext.User.Identity as ClaimsIdentity;
-                //int userId = int.Parse(identity?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-
-                //if (userId == 0)
-                //{
-                //    _logger.LogWarning("No se pudo obtener el ID del usuario autenticado");
-                //    return Unauthorized(new { message = "Usuario no autenticado" });
-                //}
-
-                // VALIDACIÓN TEMPORAL - VERIFICAR QUE SE PROPORCIONE EL userId
-                if (dto.UserId <= 0)
+                // Obtener el ID del usuario autenticado desde el token JWT
+                var identity = HttpContext.User.Identity as ClaimsIdentity;
+                var userIdClaim = identity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                
+                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId) || userId <= 0)
                 {
-                    _logger.LogWarning("ID de usuario no válido: {UserId}", dto.UserId);
-                    return BadRequest(new { message = "ID de usuario requerido y debe ser mayor a 0" });
+                    _logger.LogWarning("No se pudo obtener el ID del usuario autenticado desde el token");
+                    return Unauthorized(new { message = "Usuario no autenticado o token inválido" });
                 }
 
-                // Verificar que el usuario existe
-                var usuarioExiste = await _context.Usuarios.AnyAsync(u => u.IdUsuario == dto.UserId);
+                _logger.LogInformation("Iniciando creación de ticket para usuario autenticado {UserId}", userId);
+
+                // Verificar que el usuario existe en la base de datos
+                var usuarioExiste = await _context.Usuarios.AnyAsync(u => u.IdUsuario == userId);
                 if (!usuarioExiste)
                 {
-                    _logger.LogWarning("Usuario con ID {UserId} no encontrado", dto.UserId);
-                    return NotFound(new { message = $"Usuario con ID {dto.UserId} no encontrado" });
+                    _logger.LogWarning("Usuario con ID {UserId} no encontrado en base de datos", userId);
+                    return NotFound(new { message = $"Usuario con ID {userId} no encontrado" });
                 }
 
                 // Validar servicio y prioridad
@@ -497,12 +459,12 @@ namespace Desarrollo_web_PF_Back.Controllers.Employees
                     return BadRequest(new { message = "La descripción del ticket es requerida" });
                 }
 
-                _logger.LogInformation("Creando ticket en base de datos para usuario {UserId}", dto.UserId);
+                _logger.LogInformation("Creando ticket en base de datos para usuario autenticado {UserId}", userId);
 
-                // Crear el ticket
+                // Crear el ticket usando el userId del token JWT
                 var ticket = new Ticket
                 {
-                    IdUsuario = dto.UserId,
+                    IdUsuario = userId, // Usar el ID del usuario autenticado
                     IdServicio = dto.IdServicio,
                     IdPrioridad = dto.IdPrioridad,
                     IdEstado = 1, // Estado inicial (Abierto/Pendiente)
@@ -568,8 +530,8 @@ namespace Desarrollo_web_PF_Back.Controllers.Employees
                     TicketNumber = ticket.IdTickets.ToString().PadLeft(3, '0')
                 };
 
-                _logger.LogInformation("Ticket creado exitosamente para usuario {UserId} con ID {TicketId}", 
-                    dto.UserId, ticket.IdTickets);
+                _logger.LogInformation("Ticket creado exitosamente para usuario autenticado {UserId} con ID {TicketId}", 
+                    userId, ticket.IdTickets);
 
                 return Ok(response);
             }
