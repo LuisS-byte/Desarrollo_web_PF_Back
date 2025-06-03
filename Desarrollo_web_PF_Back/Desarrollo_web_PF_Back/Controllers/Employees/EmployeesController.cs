@@ -435,5 +435,153 @@ namespace Desarrollo_web_PF_Back.Controllers.Employees
                 return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
             }
         }
+
+        /// <summary>
+        /// Crea un nuevo ticket para el empleado
+        /// </summary>
+        /// <param name="dto">Datos del ticket a crear</param>
+        [HttpPost("create-ticket")]
+        [RequestSizeLimit(50 * 1024 * 1024)] // 50MB
+        [RequestFormLimits(MultipartBodyLengthLimit = 50 * 1024 * 1024)]
+        public async Task<IActionResult> CreateTicket([FromForm] CreateEmployeeTicketDTO dto)
+        {
+            try
+            {
+                _logger.LogInformation("Iniciando creación de ticket para empleado");
+
+                // TODO: DESCOMENTAR CUANDO SE ACTIVE JWT
+                //// Obtener el ID del usuario autenticado
+                //var identity = HttpContext.User.Identity as ClaimsIdentity;
+                //int userId = int.Parse(identity?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+
+                //if (userId == 0)
+                //{
+                //    _logger.LogWarning("No se pudo obtener el ID del usuario autenticado");
+                //    return Unauthorized(new { message = "Usuario no autenticado" });
+                //}
+
+                // VALIDACIÓN TEMPORAL - VERIFICAR QUE SE PROPORCIONE EL userId
+                if (dto.UserId <= 0)
+                {
+                    _logger.LogWarning("ID de usuario no válido: {UserId}", dto.UserId);
+                    return BadRequest(new { message = "ID de usuario requerido y debe ser mayor a 0" });
+                }
+
+                // Verificar que el usuario existe
+                var usuarioExiste = await _context.Usuarios.AnyAsync(u => u.IdUsuario == dto.UserId);
+                if (!usuarioExiste)
+                {
+                    _logger.LogWarning("Usuario con ID {UserId} no encontrado", dto.UserId);
+                    return NotFound(new { message = $"Usuario con ID {dto.UserId} no encontrado" });
+                }
+
+                // Validar servicio y prioridad
+                var servicio = await _context.Servicios.FindAsync(dto.IdServicio);
+                var prioridad = await _context.Prioridads.FindAsync(dto.IdPrioridad);
+
+                if (servicio == null)
+                {
+                    _logger.LogWarning("Servicio con ID {IdServicio} no encontrado", dto.IdServicio);
+                    return BadRequest(new { message = "Servicio no válido" });
+                }
+
+                if (prioridad == null)
+                {
+                    _logger.LogWarning("Prioridad con ID {IdPrioridad} no encontrada", dto.IdPrioridad);
+                    return BadRequest(new { message = "Prioridad no válida" });
+                }
+
+                // Validar descripción
+                if (string.IsNullOrWhiteSpace(dto.Descripcion))
+                {
+                    return BadRequest(new { message = "La descripción del ticket es requerida" });
+                }
+
+                _logger.LogInformation("Creando ticket en base de datos para usuario {UserId}", dto.UserId);
+
+                // Crear el ticket
+                var ticket = new Ticket
+                {
+                    IdUsuario = dto.UserId,
+                    IdServicio = dto.IdServicio,
+                    IdPrioridad = dto.IdPrioridad,
+                    IdEstado = 1, // Estado inicial (Abierto/Pendiente)
+                    TickDescripcion = dto.Descripcion,
+                    TickFechacreacion = DateOnly.FromDateTime(DateTime.Now)
+                };
+
+                _context.Tickets.Add(ticket);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Ticket creado con ID: {TicketId}", ticket.IdTickets);
+
+                // Procesar archivo si existe
+                if (dto.Archivo != null && dto.Archivo.Length > 0)
+                {
+                    _logger.LogInformation("Procesando archivo adjunto: {FileName}, Tamaño: {FileSize} bytes", 
+                        dto.Archivo.FileName, dto.Archivo.Length);
+
+                    try
+                    {
+                        // Crear directorio si no existe
+                        string uploadsFolder = Path.Combine("wwwroot", "uploads", "tickets");
+                        Directory.CreateDirectory(uploadsFolder);
+
+                        // Generar nombre único para el archivo
+                        string uniqueFileName = $"{Guid.NewGuid()}_{dto.Archivo.FileName}";
+                        string relativePath = Path.Combine("uploads", "tickets", uniqueFileName);
+                        string fullPath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                        // Guardar archivo físicamente
+                        using (var stream = new FileStream(fullPath, FileMode.Create))
+                        {
+                            await dto.Archivo.CopyToAsync(stream);
+                        }
+
+                        // Guardar registro en base de datos
+                        var archivo = new ArchivoTicket
+                        {
+                            IdTicket = ticket.IdTickets,
+                            ArNombre = dto.Archivo.FileName,
+                            ArRuta = relativePath,
+                            TickFechacreacion = DateOnly.FromDateTime(DateTime.Now)
+                        };
+
+                        _context.ArchivoTickets.Add(archivo);
+                        await _context.SaveChangesAsync();
+
+                        _logger.LogInformation("Archivo guardado exitosamente: {FilePath}", relativePath);
+                    }
+                    catch (Exception exFile)
+                    {
+                        _logger.LogError(exFile, "Error al procesar archivo adjunto para ticket {TicketId}", ticket.IdTickets);
+                        // No retornamos error aquí porque el ticket ya se creó exitosamente
+                        // Solo logueamos el error del archivo
+                    }
+                }
+
+                var response = new CreateTicketResponseDTO
+                {
+                    Success = true,
+                    Message = "Ticket creado exitosamente",
+                    TicketId = ticket.IdTickets,
+                    TicketNumber = ticket.IdTickets.ToString().PadLeft(3, '0')
+                };
+
+                _logger.LogInformation("Ticket creado exitosamente para usuario {UserId} con ID {TicketId}", 
+                    dto.UserId, ticket.IdTickets);
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al crear ticket para empleado");
+                return StatusCode(500, new { 
+                    success = false, 
+                    message = "Error interno del servidor al crear el ticket",
+                    error = ex.Message 
+                });
+            }
+        }
     }
 }
