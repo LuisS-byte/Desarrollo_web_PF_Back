@@ -80,6 +80,7 @@ namespace Desarrollo_web_PF_Back.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Administrador, Soporte Técnico")]
         [Route("ListaPrioridades")]
         public async Task<IActionResult> ListaPrioridades()
         {
@@ -99,7 +100,7 @@ namespace Desarrollo_web_PF_Back.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Roles = "Administrador, Soporte Técnico")]
         [Route("ListaServicios")]
         public async Task<IActionResult> ListaServicios()
         {
@@ -123,6 +124,57 @@ namespace Desarrollo_web_PF_Back.Controllers
                                ).ToListAsync();
             return StatusCode(StatusCodes.Status200OK, new { value = lista });
         }
+
+
+
+        [HttpGet]
+        [Route("AllInfoTicket")]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> ListAllInfoTicketaPrioridades(int id)
+        {
+            var lista = await (from Ticket in _dbPruebaContext.Tickets
+                               join estado in _dbPruebaContext.Estados on Ticket.IdEstado equals estado.IdEstado
+                               join Prioridad in _dbPruebaContext.Prioridads on Ticket.IdPrioridad equals Prioridad.IdPrioridad
+                               join servicio in _dbPruebaContext.Servicios on Ticket.IdPrioridad equals servicio.IdServicio
+                               join usuario in _dbPruebaContext.Usuarios on Ticket.IdUsuario equals usuario.IdUsuario
+                               join archivo in _dbPruebaContext.ArchivoTickets on Ticket.IdTickets equals archivo.IdTicket
+                               where Ticket.IdTickets == id
+                               select new
+                               {
+
+                                   id = Ticket.IdTickets,
+                                   categoria = servicio.ServNombre,
+                                   nombreCompletoUsuairo = usuario.UsuNombre+" "+usuario.UsuApellido,
+                                   correoUsuario = usuario.UsuCorreo,
+                                   prioridad = Prioridad.PrioriNombre,
+                                   fechaCreacion = Ticket.TickFechacreacion,
+                                   comentarios = (from comentarios in _dbPruebaContext.ComentarioxTickets where comentarios.IdTicket == id select new {comentarios.ComenDescripcion}).ToList(),
+                                   rutaArchivo = archivo.ArRuta,
+                                   descripcion = Ticket.TickDescripcion,
+                                   idUsaurio = usuario.IdUsuario
+                               }
+                               ).ToListAsync();
+
+            return StatusCode(StatusCodes.Status200OK, new { value = lista });
+        }
+
+        [HttpPost]
+        [Route("agregarComentario")]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> agregarComentario(ComentarioDTO dto)
+        {
+            var nuevaAsignacion = new ComentarioxTicket
+            {
+                IdTicket = dto.IdTicket,
+                IdUsuario = dto.IdUsuario,
+                ComenDescripcion = dto.Comentario
+            };
+
+            _dbPruebaContext.ComentarioxTickets.Add(nuevaAsignacion);
+            await _dbPruebaContext.SaveChangesAsync();
+            return Ok();
+        }
+
 
         [HttpPost]
         [Authorize(Roles = "Administrador")]
@@ -199,6 +251,8 @@ namespace Desarrollo_web_PF_Back.Controllers
                 });
             }
         }
+
+
 
     }
 }
