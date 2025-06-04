@@ -5,6 +5,7 @@ namespace Desarrollo_web_PF_Back.Models.DTOs.Employees
         public MetadataDTO Metadata { get; set; } = new MetadataDTO();
         public StatisticsDTO Statistics { get; set; } = new StatisticsDTO();
         public List<AssignedTicketDTO> Tickets { get; set; } = new List<AssignedTicketDTO>();
+        public UsuarioDTO usuario { get; set; }
     }
 
     public class AssignedTicketDTO
