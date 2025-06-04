@@ -125,7 +125,30 @@ namespace Desarrollo_web_PF_Back.Controllers
             return StatusCode(StatusCodes.Status200OK, new { value = lista });
         }
 
-
+        [HttpGet]
+        [Authorize(Roles = "Administrador")]
+        [Route("GenerarReportePorCategoria")]
+        public async Task<IActionResult> GenerarReportePorCategoria(int id)
+        {
+            var lista = await (from Ticket in _dbPruebaContext.Tickets
+                               join estado in _dbPruebaContext.Estados on Ticket.IdEstado equals estado.IdEstado
+                               join Prioridad in _dbPruebaContext.Prioridads on Ticket.IdPrioridad equals Prioridad.IdPrioridad
+                               join servicio in _dbPruebaContext.Servicios on Ticket.IdServicio equals servicio.IdServicio
+                               join usuario in _dbPruebaContext.Usuarios on Ticket.IdUsuario equals usuario.IdUsuario
+                               where servicio.IdServicio == id
+                               select new
+                               {
+                                   id = Ticket.IdTickets,
+                                   categoria = servicio.ServNombre,
+                                   titulo = Ticket.TickDescripcion,
+                                   fechaCreacion = Ticket.TickFechacreacion,
+                                   Encargado = usuario.UsuNombre + " " + usuario.UsuApellido,
+                                   Prioridad = Prioridad.PrioriNombre,
+                                   estado = estado.EstNombre,
+                                   comentarios = (from comentarios in _dbPruebaContext.ComentarioxTickets where comentarios.IdTicket == Ticket.IdTickets select new { comentarios.ComenDescripcion }).ToList(),
+                               }).ToListAsync();
+            return StatusCode(StatusCodes.Status200OK, new { value = lista });
+        }
 
         [HttpGet]
         [Route("AllInfoTicket")]
