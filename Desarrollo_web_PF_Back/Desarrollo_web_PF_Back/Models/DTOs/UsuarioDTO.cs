@@ -6,6 +6,5 @@
         public string? Correo { get; set; }
         public string? Clave { get; set; }
         public int IdRol { get; set; }
-        public int interno { get; set; }
-        }
+    }
 }

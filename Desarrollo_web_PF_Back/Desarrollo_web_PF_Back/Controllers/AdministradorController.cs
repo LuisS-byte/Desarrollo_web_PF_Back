@@ -80,7 +80,6 @@ namespace Desarrollo_web_PF_Back.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Administrador, Soporte Técnico")]
         [Route("ListaPrioridades")]
         public async Task<IActionResult> ListaPrioridades()
         {
@@ -100,7 +99,7 @@ namespace Desarrollo_web_PF_Back.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Administrador, Soporte Técnico")]
+        [Authorize(Roles = "Administrador")]
         [Route("ListaServicios")]
         public async Task<IActionResult> ListaServicios()
         {

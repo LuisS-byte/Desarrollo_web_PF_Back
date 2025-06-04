@@ -2,9 +2,7 @@ namespace Desarrollo_web_PF_Back.Models.DTOs.Employees
 {
     public class CreateEmployeeTicketDTO
     {
-        public string Nombre { get; set; } = string.Empty;
-        public string Apellido { get; set; } = string.Empty;
-        public string Correo { get; set; } = string.Empty;
+        // UserId ya no es necesario porque se obtiene del token JWT
         public int IdServicio { get; set; }
         public int IdPrioridad { get; set; }
         public string Descripcion { get; set; } = string.Empty;
