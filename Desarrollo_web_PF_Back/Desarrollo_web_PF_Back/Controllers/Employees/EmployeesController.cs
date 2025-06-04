@@ -9,7 +9,7 @@ namespace Desarrollo_web_PF_Back.Controllers.Employees
 {
     [ApiController]
     [Route("api/employees")]
-    [Authorize] // HABILITADO - Requiere autenticación JWT
+    //[Authorize] // HABILITADO - Requiere autenticación JWT
     public class EmployeesController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -21,12 +21,35 @@ namespace Desarrollo_web_PF_Back.Controllers.Employees
             _logger = logger;
         }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         /// <summary>
         /// Obtiene los tickets del usuario autenticado con paginación y estadísticas
         /// </summary>
         /// <param name="currentPage">Página actual (por defecto 1)</param>
         /// <param name="pageSize">Tamaño de página (por defecto 10, máximo 100)</param>
         [HttpGet("my-tickets")]
+        [Authorize(Roles = "Soporte Técnico")]
         public async Task<IActionResult> GetMyTickets(
             [FromQuery] int currentPage = 1,
             [FromQuery] int pageSize = 10)
@@ -129,6 +152,7 @@ namespace Desarrollo_web_PF_Back.Controllers.Employees
         /// <param name="currentPage">Página actual (por defecto 1)</param>
         /// <param name="pageSize">Tamaño de página (por defecto 10, máximo 100)</param>
         [HttpGet("assigned-tickets")]
+        [Authorize(Roles = "Soporte Técnico")]
         public async Task<IActionResult> GetAssignedTickets(
             [FromQuery] int currentPage = 1,
             [FromQuery] int pageSize = 10)
@@ -146,8 +170,11 @@ namespace Desarrollo_web_PF_Back.Controllers.Employees
                 }
 
                 // Verificar que el usuario existe en la base de datos
-                var usuarioExiste = await _context.Usuarios.AnyAsync(u => u.IdUsuario == userId);
-                if (!usuarioExiste)
+                var usuarioExiste = await (from usuario in _context.Usuarios
+                                           where usuario.IdUsuario == userId
+                                           select new { usuario.UsuNombre, usuario.UsuApellido, usuario.UsuCorreo , usuario.IdRol})
+                           .ToListAsync();
+                if (usuarioExiste==null)
                 {
                     _logger.LogWarning("Usuario con ID {UserId} no encontrado en base de datos", userId);
                     return NotFound(new { message = $"Usuario con ID {userId} no encontrado" });
@@ -217,6 +244,7 @@ namespace Desarrollo_web_PF_Back.Controllers.Employees
                     })
                     .ToListAsync();
 
+
                 // Crear respuesta específica para tickets asignados
                 var response = new AssignedTicketsResponseDTO
                 {
@@ -228,7 +256,15 @@ namespace Desarrollo_web_PF_Back.Controllers.Employees
                         PageSize = pageSize
                     },
                     Statistics = statistics,
-                    Tickets = tickets
+                    Tickets = tickets,
+                    usuario = new UsuarioDTO
+                    {
+                        Id = userId,
+                        Nombre = usuarioExiste.FirstOrDefault()?.UsuNombre,
+                        Apellido = usuarioExiste.FirstOrDefault()?.UsuApellido,
+                        Correo = usuarioExiste.FirstOrDefault()?.UsuCorreo ?? "No disponible"
+
+                    }
                 };
 
                 _logger.LogInformation("Tickets asignados obtenidos exitosamente para usuario {UserId} - Total: {TotalTickets}, Página: {CurrentPage}/{TotalPages}", 
@@ -248,6 +284,7 @@ namespace Desarrollo_web_PF_Back.Controllers.Employees
         /// </summary>
         /// <param name="id">ID del ticket</param>
         [HttpGet("my-tickets/{id}")]
+        [Authorize(Roles = "Soporte Técnico")]
         public async Task<IActionResult> GetMyTicketById(int id)
         {
             try
@@ -412,30 +449,47 @@ namespace Desarrollo_web_PF_Back.Controllers.Employees
         /// <param name="dto">Datos del ticket a crear</param>
         [HttpPost("create-ticket")]
         [RequestSizeLimit(50 * 1024 * 1024)] // 50MB
+        [Authorize(Roles = "Soporte Técnico")]
         [RequestFormLimits(MultipartBodyLengthLimit = 50 * 1024 * 1024)]
         public async Task<IActionResult> CreateTicket([FromForm] CreateEmployeeTicketDTO dto)
         {
             try
             {
-                // Obtener el ID del usuario autenticado desde el token JWT
-                var identity = HttpContext.User.Identity as ClaimsIdentity;
-                var userIdClaim = identity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                
-                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId) || userId <= 0)
+                if (string.IsNullOrWhiteSpace(dto.Correo))
                 {
-                    _logger.LogWarning("No se pudo obtener el ID del usuario autenticado desde el token");
-                    return Unauthorized(new { message = "Usuario no autenticado o token inválido" });
+                    _logger.LogWarning("Correo electrónico no proporcionado");
+                    return BadRequest(new { message = "El correo electrónico es requerido" });
                 }
 
-                _logger.LogInformation("Iniciando creación de ticket para usuario autenticado {UserId}", userId);
+                _logger.LogInformation("Buscando usuario por correo: {Correo}", dto.Correo);
 
-                // Verificar que el usuario existe en la base de datos
-                var usuarioExiste = await _context.Usuarios.AnyAsync(u => u.IdUsuario == userId);
-                if (!usuarioExiste)
+                var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.UsuCorreo == dto.Correo);
+
+                if (usuario == null)
                 {
-                    _logger.LogWarning("Usuario con ID {UserId} no encontrado en base de datos", userId);
-                    return NotFound(new { message = $"Usuario con ID {userId} no encontrado" });
+                    _logger.LogInformation("Usuario no encontrado. Registrando usuario externo con correo: {Correo}", dto.Correo);
+
+                    usuario = new Usuario
+                    {
+                        UsuNombre = dto.Nombre ?? "Usuario Externo",
+                        UsuCorreo = dto.Correo,
+                        IdRol = 3,
+                        UsuInterno = false
+                    };
+
+                    await _context.Usuarios.AddAsync(usuario);
+                    await _context.SaveChangesAsync();
+
+                    if (usuario.IdUsuario == 0)
+                    {
+                        _logger.LogError("No se pudo registrar el usuario externo con correo: {Correo}", dto.Correo);
+                        return StatusCode(500, new { message = "Error al registrar usuario externo" });
+                    }
+
+                    _logger.LogInformation("Usuario externo registrado exitosamente con ID: {IdUsuario}", usuario.IdUsuario);
                 }
+
+                int userId = usuario.IdUsuario;
 
                 // Validar servicio y prioridad
                 var servicio = await _context.Servicios.FindAsync(dto.IdServicio);
@@ -453,21 +507,19 @@ namespace Desarrollo_web_PF_Back.Controllers.Employees
                     return BadRequest(new { message = "Prioridad no válida" });
                 }
 
-                // Validar descripción
                 if (string.IsNullOrWhiteSpace(dto.Descripcion))
                 {
                     return BadRequest(new { message = "La descripción del ticket es requerida" });
                 }
 
-                _logger.LogInformation("Creando ticket en base de datos para usuario autenticado {UserId}", userId);
+                _logger.LogInformation("Creando ticket en base de datos para usuario {UserId}", userId);
 
-                // Crear el ticket usando el userId del token JWT
                 var ticket = new Ticket
                 {
-                    IdUsuario = userId, // Usar el ID del usuario autenticado
+                    IdUsuario = userId,
                     IdServicio = dto.IdServicio,
                     IdPrioridad = dto.IdPrioridad,
-                    IdEstado = 1, // Estado inicial (Abierto/Pendiente)
+                    IdEstado = 1,
                     TickDescripcion = dto.Descripcion,
                     TickFechacreacion = DateOnly.FromDateTime(DateTime.Now)
                 };
@@ -480,27 +532,23 @@ namespace Desarrollo_web_PF_Back.Controllers.Employees
                 // Procesar archivo si existe
                 if (dto.Archivo != null && dto.Archivo.Length > 0)
                 {
-                    _logger.LogInformation("Procesando archivo adjunto: {FileName}, Tamaño: {FileSize} bytes", 
+                    _logger.LogInformation("Procesando archivo adjunto: {FileName}, Tamaño: {FileSize} bytes",
                         dto.Archivo.FileName, dto.Archivo.Length);
 
                     try
                     {
-                        // Crear directorio si no existe
                         string uploadsFolder = Path.Combine("wwwroot", "uploads", "tickets");
                         Directory.CreateDirectory(uploadsFolder);
 
-                        // Generar nombre único para el archivo
                         string uniqueFileName = $"{Guid.NewGuid()}_{dto.Archivo.FileName}";
                         string relativePath = Path.Combine("uploads", "tickets", uniqueFileName);
                         string fullPath = Path.Combine(uploadsFolder, uniqueFileName);
 
-                        // Guardar archivo físicamente
                         using (var stream = new FileStream(fullPath, FileMode.Create))
                         {
                             await dto.Archivo.CopyToAsync(stream);
                         }
 
-                        // Guardar registro en base de datos
                         var archivo = new ArchivoTicket
                         {
                             IdTicket = ticket.IdTickets,
@@ -517,8 +565,6 @@ namespace Desarrollo_web_PF_Back.Controllers.Employees
                     catch (Exception exFile)
                     {
                         _logger.LogError(exFile, "Error al procesar archivo adjunto para ticket {TicketId}", ticket.IdTickets);
-                        // No retornamos error aquí porque el ticket ya se creó exitosamente
-                        // Solo logueamos el error del archivo
                     }
                 }
 
@@ -530,20 +576,22 @@ namespace Desarrollo_web_PF_Back.Controllers.Employees
                     TicketNumber = ticket.IdTickets.ToString().PadLeft(3, '0')
                 };
 
-                _logger.LogInformation("Ticket creado exitosamente para usuario autenticado {UserId} con ID {TicketId}", 
+                _logger.LogInformation("Ticket creado exitosamente para usuario {UserId} con ID {TicketId}",
                     userId, ticket.IdTickets);
 
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al crear ticket para empleado");
-                return StatusCode(500, new { 
-                    success = false, 
+                _logger.LogError(ex, "Error al crear ticket");
+                return StatusCode(500, new
+                {
+                    success = false,
                     message = "Error interno del servidor al crear el ticket",
-                    error = ex.Message 
+                    error = ex.Message
                 });
             }
         }
+
     }
 }
