@@ -22,7 +22,7 @@ namespace Desarrollo_web_PF_Back.Controllers
         }
 
         [HttpPost("crear")]
-        [RequestSizeLimit(50 * 1024 * 1024)] // 50MB
+        [RequestSizeLimit(10 * 1024 * 1024)] // 50MB
         [RequestFormLimits(MultipartBodyLengthLimit = 50 * 1024 * 1024)]
         public async Task<IActionResult> CrearTicket([FromForm] CrearTicketDTO dto)
         {
@@ -122,7 +122,7 @@ namespace Desarrollo_web_PF_Back.Controllers
         [HttpGet("mis-tickets")]
         public async Task<IActionResult> ObtenerTicketsUsuario()
         {
-            Console.WriteLine("SEXOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+           
             var identity = HttpContext.User.Identity as ClaimsIdentity;
             int usuarioId = int.Parse(identity?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
