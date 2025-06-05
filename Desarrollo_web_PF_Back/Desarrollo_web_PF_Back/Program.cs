@@ -47,10 +47,10 @@ builder.Services.AddAuthentication(config =>
 
 // Agregar servicios de controladores
 builder.Services.AddControllers();
-
+builder.Services.AddHttpClient();
 builder.Services.Configure<FormOptions>(options =>
 {
-    options.MultipartBodyLengthLimit = 50 * 1024 * 1024; // 50MB
+    options.MultipartBodyLengthLimit = 10 * 1024 * 1024; // 50MB
     options.ValueLengthLimit = int.MaxValue;
     options.MultipartHeadersLengthLimit = int.MaxValue;
     options.KeyLengthLimit = int.MaxValue;
@@ -58,14 +58,13 @@ builder.Services.Configure<FormOptions>(options =>
 });
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Limits.MaxRequestBodySize = 50 * 1024 * 1024; // 50MB
+    options.Limits.MaxRequestBodySize = 10 * 1024 * 1024; // 50MB
     options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(2);
     options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(2);
 });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddHttpClient();
 
 
 // Configurar CORS para permitir solicitudes de cualquier origen
