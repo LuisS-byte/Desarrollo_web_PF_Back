@@ -200,6 +200,39 @@ namespace Desarrollo_web_PF_Back.Controllers
             return Ok(tickets);
         }
 
+        [HttpGet("detalle/{id}")]
+        public async Task<IActionResult> ObtenerDetalleTicket(int id)
+        {
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            int usuarioId = int.Parse(identity?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+
+            var ticket = await _context.Tickets
+                .Include(t => t.IdEstadoNavigation)
+                .Include(t => t.IdPrioridadNavigation)
+                .Include(t => t.IdServicioNavigation)
+                .Include(t => t.ArchivoTickets)
+                .Where(t => t.IdTickets == id && t.IdUsuario == usuarioId)
+                .Select(t => new
+                {
+                    Id = t.IdTickets,
+                    Descripcion = t.TickDescripcion,
+                    Fecha = t.TickFechacreacion,
+                    Estado = t.IdEstadoNavigation.EstNombre,
+                    Prioridad = t.IdPrioridadNavigation.PrioriNombre,
+                    Servicio = t.IdServicioNavigation.ServNombre,
+                    Archivos = t.ArchivoTickets.Select(a => new
+                    {
+                        Nombre = a.ArNombre,
+                        Url = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}/{a.ArRuta.Replace("\\", "/")}"
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            if (ticket == null)
+                return NotFound("Ticket no encontrado");
+
+            return Ok(ticket);
+        }
 
 
 
