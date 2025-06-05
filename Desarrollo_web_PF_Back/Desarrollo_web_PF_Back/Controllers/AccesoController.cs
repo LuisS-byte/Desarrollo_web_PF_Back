@@ -22,33 +22,6 @@ namespace Desarrollo_web_PF_Back.Controllers
         }
 
         [HttpPost]
-        [Route("Registrarse")]
-        public async Task<IActionResult> Registrarse(UsuarioDTO objeto)
-        {
-
-            var modeloUsuario = new Usuario
-            {
-                UsuNombre = objeto.Nombre,
-                UsuCorreo = objeto.Correo,
-                IdRol = objeto.IdRol,
-                UsuInterno = true,
-                UsuContraseña = _utilidades.encriptarSHA256(objeto.Clave)
-            };
-
-            await _dbPruebaContext.Usuarios.AddAsync(modeloUsuario);
-            await _dbPruebaContext.SaveChangesAsync();
-            if (modeloUsuario.IdUsuario != 0)
-            {
-                return StatusCode(StatusCodes.Status200OK, new { isSucces = true });
-            }
-            else
-            {
-                return StatusCode(StatusCodes.Status200OK, new { isSucces = false });
-            }
-
-        }   
-
-        [HttpPost]
         [Route("Login")]
         public async Task<IActionResult> Login(LoginDTO objeto)
         {

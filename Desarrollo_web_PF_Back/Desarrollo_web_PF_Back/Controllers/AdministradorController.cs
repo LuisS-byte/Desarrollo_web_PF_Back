@@ -1,9 +1,13 @@
-﻿using Desarrollo_web_PF_Back.Models;
+﻿using Desarrollo_web_PF_Back.Custom;
+using Desarrollo_web_PF_Back.Models;
 using Desarrollo_web_PF_Back.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using System.Net;
+using System.Net.Mail;
 
 namespace Desarrollo_web_PF_Back.Controllers
 {
@@ -13,10 +17,128 @@ namespace Desarrollo_web_PF_Back.Controllers
     {
         private readonly AppDbContext _dbPruebaContext;
 
-        public AdministradorController(AppDbContext appDbContext)
+        private readonly Utilidades _utilidades;
+
+        public AdministradorController(AppDbContext appDbContext, IConfiguration configuration, Utilidades utilidades)
         {
             _dbPruebaContext = appDbContext;
+            _utilidades = utilidades;
         }
+
+        [HttpGet]
+        [Route("InformacionUsuarios")]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> InformacionUsuarios()
+        {
+            var lista = await (from usuario in _dbPruebaContext.Usuarios
+                               join rol in _dbPruebaContext.Rols on usuario.IdRol equals rol.IdRol
+                               select new
+                               {
+                                   Id = usuario.IdUsuario,
+                                   nombre = usuario.UsuNombre,
+                                   apellido = usuario.UsuApellido,
+                                   Correo = usuario.UsuCorreo,
+                                   Rol = rol.RolNombre,
+                                   Interno = usuario.UsuInterno.HasValue && usuario.UsuInterno.Value ? "Sí" : "No" 
+                               }).ToListAsync();
+            return StatusCode(StatusCodes.Status200OK, new { value = lista });
+        }
+
+
+        [HttpPost]
+        [Authorize(Roles = "Administrador, Soporte Técnico, Usuario Final")]
+        [Route("EnviarCorreo")]
+        public IActionResult EnviarCorreo([FromBody] CorreoDTO correo)
+        {
+            try
+            {
+                var mail = new MailMessage();
+                mail.From = new MailAddress("DigitalTickets@gmail.com", "Sistema de Tickets");
+                mail.To.Add(correo.Destinatario);
+                mail.Subject = correo.Asunto;
+                mail.Body = correo.Cuerpo;
+                mail.IsBodyHtml = true; 
+
+                var smtp = new SmtpClient("smtp.gmail.com", 587)
+                {
+                    EnableSsl = true,
+                    UseDefaultCredentials = false,
+                    Credentials = new NetworkCredential("luis2004eduardocristales@gmail.com", "sayb sjhi blza fzml") 
+                };
+
+                smtp.Send(mail);
+                return Ok(new { mensaje = "Correo enviado correctamente" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Error al enviar el correo: " + ex.Message });
+            }
+        }
+
+
+
+
+        [HttpPost]
+        [Route("RegistrarUsuario")]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> Registrarse(UsuarioDTO objeto)
+        {
+
+            var modeloUsuario = new Usuario
+            {
+                UsuNombre = objeto.Nombre,
+                UsuApellido = objeto.Apellido,
+                UsuCorreo = objeto.Correo,
+                IdRol = objeto.IdRol,
+                UsuInterno = objeto.interno ==1 ? true:false,
+                UsuContraseña = _utilidades.encriptarSHA256(objeto.Clave)
+            };
+
+            await _dbPruebaContext.Usuarios.AddAsync(modeloUsuario);
+            await _dbPruebaContext.SaveChangesAsync();
+
+            return StatusCode(StatusCodes.Status200OK, new { isSucces = true });
+
+        }
+
+        [HttpPatch]
+        [Route("ActualizarUsuario")]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> ActualizarUsuario(UsuarioDTO objeto)
+        {
+            var modeloUsuario = await _dbPruebaContext.Usuarios.FindAsync(objeto.Id);
+            if (modeloUsuario == null)
+            {
+                return NotFound(new { isSuccess = false, message = "Usuario no encontrado" });
+            }
+            if (objeto.Clave != null)
+            {
+                               modeloUsuario.UsuContraseña = _utilidades.encriptarSHA256(objeto.Clave);
+            }
+            modeloUsuario.UsuNombre = objeto.Nombre;
+            modeloUsuario.UsuApellido = objeto.Apellido;
+            modeloUsuario.UsuCorreo = objeto.Correo;
+            modeloUsuario.IdRol = objeto.IdRol;
+            modeloUsuario.UsuInterno = objeto.interno == 1 ? true : false;
+            _dbPruebaContext.Usuarios.Update(modeloUsuario);
+            await _dbPruebaContext.SaveChangesAsync();
+            return StatusCode(StatusCodes.Status200OK, new { isSuccess = true });
+        }
+
+        [HttpGet]
+        [Route("ListaRoles")]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> ListaRoles()
+        {
+            var lista = await (from rol in _dbPruebaContext.Rols
+                               select new
+                               {
+                                   id= rol.IdRol,
+                                   NombreRol = rol.RolNombre
+                               }).ToListAsync();
+            return StatusCode(StatusCodes.Status200OK, new { value = lista });
+        }
+
 
         [HttpGet]
         [Authorize(Roles = "Administrador")]
@@ -115,11 +237,12 @@ namespace Desarrollo_web_PF_Back.Controllers
         public async Task<IActionResult> ListaTecnicos()
         {
             var lista = await (from usuarios in _dbPruebaContext.Usuarios
-                               where usuarios.IdUsuario == 2
+                               where usuarios.IdRol == 2
                                select new
                                {
                                    id = usuarios.IdUsuario,
-                                   nombre = usuarios.UsuNombre + " " + usuarios.UsuApellido
+                                   nombre = usuarios.UsuNombre + " " + usuarios.UsuApellido,
+                                   correo = usuarios.UsuCorreo
                                }
                                ).ToListAsync();
             return StatusCode(StatusCodes.Status200OK, new { value = lista });
