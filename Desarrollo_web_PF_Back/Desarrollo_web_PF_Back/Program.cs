@@ -65,6 +65,7 @@ builder.WebHost.ConfigureKestrel(options =>
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHttpClient();
 
 
 // Configurar CORS para permitir solicitudes de cualquier origen
