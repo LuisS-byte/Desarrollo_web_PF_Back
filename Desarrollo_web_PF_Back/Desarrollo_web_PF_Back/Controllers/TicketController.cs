@@ -14,11 +14,15 @@ namespace Desarrollo_web_PF_Back.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _config;
 
-        public TicketController(AppDbContext context, IWebHostEnvironment env)
+        public TicketController(AppDbContext context, IWebHostEnvironment env, IHttpClientFactory httpClientFactory, IConfiguration config)
         {
             _context = context;
             _env = env;
+            _httpClientFactory = httpClientFactory;
+            _config = config;
         }
 
         [HttpPost("crear")]
@@ -104,6 +108,58 @@ namespace Desarrollo_web_PF_Back.Controllers
                         Console.WriteLine($"[ERROR ARCHIVO] {exFile.Message}");
                         Console.WriteLine($"[ERROR ARCHIVO STACK] {exFile.StackTrace}");
                         return StatusCode(500, $"Error al guardar archivo: {exFile.Message}");
+                    }
+                }
+                Console.WriteLine("BUSCANDO AL USUARIO");
+                var usuario = await _context.Usuarios.FindAsync(usuarioId);
+                Console.WriteLine("¿Usuario encontrado? " + (usuario != null));
+                if (usuario != null)
+                    Console.WriteLine("Correo del usuario: " + usuario.UsuCorreo);
+
+                if (usuario != null && !string.IsNullOrEmpty(usuario.UsuCorreo))
+                {
+
+                    Console.WriteLine("CREANDO CORREO");
+                    var httpClient = _httpClientFactory.CreateClient();
+
+                   
+                    var token = HttpContext.Request.Headers["Authorization"].ToString();
+
+
+                    if (!token.StartsWith("Bearer "))
+                    {
+                        token = "Bearer " + token;
+                    }
+
+                    var correoPayload = new
+                    {
+                        destinatario = usuario.UsuCorreo,
+                        asunto = $"✅ Ticket #{ticket.IdTickets} creado correctamente",
+                        cuerpo = $"""
+                <h3>Hola {usuario.UsuNombre},</h3>
+            <p>Tu ticket ha sido registrado con éxito.</p>
+            <ul>
+                <li><strong>ID:</strong> #{ticket.IdTickets}</li>
+                <li><strong>Descripción:</strong> {ticket.TickDescripcion}</li>
+                <li><strong>Fecha:</strong> {ticket.TickFechacreacion}</li>
+            </ul>
+            <p>Te mantendremos informado sobre su progreso.</p>
+        """
+                    };
+
+                    var request = new HttpRequestMessage(HttpMethod.Post, _config["Api:BaseUrl"] + "/api/Administrador/EnviarCorreo")
+                    {
+                        Content = JsonContent.Create(correoPayload)
+                    };
+
+                    
+                    request.Headers.Add("Authorization", token);
+
+                    var response = await httpClient.SendAsync(request);
+                    Console.WriteLine("SE CREEO EL TICKETTTT");
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine("[WARN] El correo no pudo enviarse.");
                     }
                 }
 
